@@ -8,3 +8,4 @@ langchain
 python-jose
 requests
 python-dotenv
+python-multipart
