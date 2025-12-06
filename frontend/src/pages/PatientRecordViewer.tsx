@@ -1,8 +1,8 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { FileText, AlertCircle, Pill, Activity, Calendar, MessageSquare, Download } from 'lucide-react'
 
 export default function PatientRecordViewer() {
-    const { patientId } = useParams()
+
 
     const patientData = {
         name: 'Alex Johnson',

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Book, Shield, Activity, FileText, Lock } from 'lucide-react'
+import { Book, Shield, Activity, Lock } from 'lucide-react'
 
 export default function Documentation() {
     return (

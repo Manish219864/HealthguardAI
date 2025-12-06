@@ -7,7 +7,7 @@ import { connectWallet, createHealthID, loginWithEmail } from '../services/api'
 
 declare global {
     interface Window {
-        ethereum?: any
+        ethereum?: unknown
     }
 }
 
@@ -29,7 +29,8 @@ export default function Login() {
         setIsLoading(true)
         try {
             if (window.ethereum) {
-                const provider = new ethers.BrowserProvider(window.ethereum)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const provider = new ethers.BrowserProvider(window.ethereum as any)
                 const signer = await provider.getSigner()
                 const walletAddress = await signer.getAddress()
 
@@ -56,7 +57,8 @@ export default function Login() {
         setIsLoading(true)
         try {
             if (window.ethereum) {
-                const provider = new ethers.BrowserProvider(window.ethereum)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const provider = new ethers.BrowserProvider(window.ethereum as any)
                 const signer = await provider.getSigner()
                 const walletAddress = await signer.getAddress()
 

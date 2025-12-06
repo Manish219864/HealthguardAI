@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import {
     Send, AlertTriangle, MapPin, Share2, Loader2,
-    Zap, Shield, User, Thermometer, Pill, Brain,
+    User, Thermometer, Pill, Brain,
     RefreshCw, MessageSquare, Stethoscope, Save
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -30,7 +30,7 @@ export default function SymptomChecker() {
     const [emergencyAlert, setEmergencyAlert] = useState<string | null>(null)
     const [aiStatus, setAiStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connecting')
     const [conversationStage, setConversationStage] = useState<'greeting' | 'exploring' | 'analyzing' | 'followup'>('greeting')
-    const [userContext, setUserContext] = useState({
+    const [, setUserContext] = useState({
         age: null as number | null,
         hasMedicalHistory: false,
         contextProvided: false
@@ -99,7 +99,7 @@ export default function SymptomChecker() {
                         without_insurance: response.analysis.cost_estimate?.without_insurance || "N/A"
                     }
                 }
-                setAnalysis(safeAnalysis as any) // Type assertion to handle the merge
+                setAnalysis(safeAnalysis as SymptomAnalysis) // Type assertion to handle the merge
                 setConversationStage('analyzing')
                 setMessages(prev => [...prev, {
                     id: Date.now() + 1,
