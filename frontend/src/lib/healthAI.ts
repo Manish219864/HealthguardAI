@@ -50,7 +50,7 @@ export class HealthAIClient {
             }
 
             return await response.json();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Chat error:', error);
 
             if (error instanceof Error && error.message.includes('fetch')) {
@@ -103,7 +103,7 @@ export class HealthAIClient {
         return emergencies.some(e => message.toLowerCase().includes(e));
     }
 
-    static async directAnalysis(symptoms: string, context?: any) {
+    static async directAnalysis(symptoms: string, context?: Record<string, unknown>) {
         try {
             const response = await fetch(`${API_BASE_URL}/api/ai/analyze`, {
                 method: 'POST',
@@ -136,7 +136,7 @@ export class HealthAIClient {
             });
             if (!response.ok) throw new Error('Emergency check failed');
             return await response.json();
-        } catch (error) {
+        } catch {
             return {
                 is_emergency: this.isEmergency(symptoms),
                 level: this.isEmergency(symptoms) ? 'EMERGENCY' : 'LOW',
@@ -145,7 +145,7 @@ export class HealthAIClient {
         }
     }
 
-    static async updateContext(context: Record<string, any>) {
+    static async updateContext(context: Record<string, unknown>) {
         try {
             const response = await fetch(`${API_BASE_URL}/api/ai/update-context`, {
                 method: 'POST',
@@ -181,7 +181,7 @@ export class HealthAIClient {
             const response = await fetch(`${API_BASE_URL}/api/ai/health`);
             if (!response.ok) throw new Error('Health check failed');
             return await response.json();
-        } catch (error) {
+        } catch {
             return {
                 status: 'unhealthy',
                 ai_model: 'Unknown',
@@ -196,7 +196,7 @@ export class HealthAIClient {
             const response = await fetch(`${API_BASE_URL}/api/ai/models`);
             if (!response.ok) throw new Error('List models failed');
             return await response.json();
-        } catch (error) {
+        } catch {
             return {
                 available_models: [],
                 current_model: 'Unknown'

@@ -1,9 +1,10 @@
+import React from 'react'
 import QRCode from 'react-qr-code'
 import { Link } from 'react-router-dom'
 import { Download, Share2, AlertCircle, Phone, Droplet, Pill } from 'lucide-react'
 
 export default function EmergencyQR() {
-    const emergencyData = {
+    const [emergencyData] = React.useState(() => ({
         patientId: 'HG-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
         name: 'Alex Johnson',
         bloodType: 'O+',
@@ -15,7 +16,7 @@ export default function EmergencyQR() {
             relationship: 'Spouse'
         },
         lastEKG: 'Oct 15, 2024'
-    }
+    }))
 
     const emergencyUrl = `https://healthguard.app/emergency/${emergencyData.patientId}`
 

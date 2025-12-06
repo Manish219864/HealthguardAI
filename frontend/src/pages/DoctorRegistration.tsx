@@ -31,7 +31,8 @@ export default function DoctorRegistration() {
     const connectWallet = async () => {
         if (window.ethereum) {
             try {
-                const provider = new ethers.BrowserProvider(window.ethereum)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const provider = new ethers.BrowserProvider(window.ethereum as any)
                 const signer = await provider.getSigner()
                 const address = await signer.getAddress()
                 setFormData(prev => ({ ...prev, walletAddress: address }))

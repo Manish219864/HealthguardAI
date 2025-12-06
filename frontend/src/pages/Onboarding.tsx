@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { CheckCircle2, Circle, Users, FileText, CreditCard, User, ArrowRight, X, Heart } from 'lucide-react'
+import { CheckCircle2, Users, FileText, CreditCard, User, ArrowRight, X, Heart } from 'lucide-react'
 import { updateUserProfile, uploadRecord } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
@@ -8,7 +8,7 @@ export default function Onboarding() {
     const navigate = useNavigate()
     const location = useLocation()
     const { login } = useAuth()
-    const { walletAddress, method, userData } = location.state || {}
+    const { walletAddress, userData } = location.state || {}
 
     const [currentStep, setCurrentStep] = useState(0)
     const [personalInfo, setPersonalInfo] = useState({

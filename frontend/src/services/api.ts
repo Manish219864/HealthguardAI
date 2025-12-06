@@ -124,7 +124,7 @@ export const fetchHealthVault = async (userId: string = 'test123'): Promise<Heal
     return data.vault
 }
 
-export const updateUserProfile = async (userId: string, data: any) => {
+export const updateUserProfile = async (userId: string, data: Partial<UserProfile>) => {
     const response = await fetch(`${API_BASE_URL}/api/user/profile?user_id=${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },

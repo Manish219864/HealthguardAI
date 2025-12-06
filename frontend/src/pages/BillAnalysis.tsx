@@ -16,17 +16,17 @@ export default function BillAnalysis() {
     const [billUploaded, setBillUploaded] = useState(false)
     const [isAnalyzing, setIsAnalyzing] = useState(false)
 
-    const billData = {
+    const billData: { total: number; charges: BillCharge[] } = {
         total: 3500,
         charges: [
-            { id: 1, description: 'ER Facility Fee', amount: 1200, status: 'approved' as const },
-            { id: 2, description: 'EKG', amount: 300, status: 'approved' as const },
-            { id: 3, description: 'Lab Work', amount: 500, status: 'approved' as const },
+            { id: 1, description: 'ER Facility Fee', amount: 1200, status: 'approved' },
+            { id: 2, description: 'EKG', amount: 300, status: 'approved' },
+            { id: 3, description: 'Lab Work', amount: 500, status: 'approved' },
             {
                 id: 4,
                 description: 'Critical Care Charge',
                 amount: 1500,
-                status: 'flagged' as const,
+                status: 'flagged',
                 reason: 'You were stable, not critical',
                 fairPrice: 300,
                 overcharge: 1200
@@ -49,9 +49,7 @@ export default function BillAnalysis() {
         .filter(c => c.status === 'approved')
         .reduce((sum, c) => sum + c.amount, 0)
 
-    const flaggedTotal = billData.charges
-        .filter(c => c.status === 'flagged')
-        .reduce((sum, c) => sum + c.amount, 0)
+
 
     const potentialSavings = billData.charges
         .filter(c => c.status === 'flagged')
