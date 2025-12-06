@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Upload, Shield, CheckCircle, Stethoscope } from 'lucide-react'
+import { ethers } from 'ethers'
+import { Upload, Shield, CheckCircle, Stethoscope, Wallet } from 'lucide-react'
 
 export default function DoctorRegistration() {
     const navigate = useNavigate()
@@ -8,15 +9,54 @@ export default function DoctorRegistration() {
         licenseNumber: '',
         specialty: '',
         hospital: '',
+        password: '',
         walletAddress: ''
     })
+    const [licenseFile, setLicenseFile] = useState<File | null>(null)
+    const [idFile, setIdFile] = useState<File | null>(null)
+    const licenseInputRef = useRef<HTMLInputElement>(null)
+    const idInputRef = useRef<HTMLInputElement>(null)
     const [isSubmitted, setIsSubmitted] = useState(false)
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'license' | 'id') => {
+        if (e.target.files && e.target.files[0]) {
+            if (type === 'license') {
+                setLicenseFile(e.target.files[0])
+            } else {
+                setIdFile(e.target.files[0])
+            }
+        }
+    }
+
+    const connectWallet = async () => {
+        if (window.ethereum) {
+            try {
+                const provider = new ethers.BrowserProvider(window.ethereum)
+                const signer = await provider.getSigner()
+                const address = await signer.getAddress()
+                setFormData(prev => ({ ...prev, walletAddress: address }))
+            } catch (error) {
+                console.error("Error connecting wallet:", error)
+                alert("Failed to connect wallet. Please try again.")
+            }
+        } else {
+            alert("MetaMask is not installed. Please install it to continue.")
+            window.open('https://metamask.io/download/', '_blank')
+        }
+    }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
+        if (!licenseFile || !idFile) {
+            alert('Please upload both verification documents.')
+            return
+        }
         setIsSubmitted(true)
-        // Simulate verification process
+        // Simulate account creation and verification process
         setTimeout(() => {
+            // In a real app, we would send this data to the backend
+            console.log('Registering doctor:', formData)
+            console.log('Files:', { licenseFile, idFile })
             navigate('/doctor-dashboard')
         }, 2000)
     }
@@ -63,6 +103,21 @@ export default function DoctorRegistration() {
                                 />
                             </div>
 
+                            {/* Password */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                    Create Password *
+                                </label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+
                             {/* Specialty */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -103,15 +158,31 @@ export default function DoctorRegistration() {
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                                     Wallet Address
                                 </label>
-                                <input
-                                    type="text"
-                                    value={formData.walletAddress || '0x742d...'}
-                                    onChange={(e) => setFormData({ ...formData, walletAddress: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none bg-slate-50"
-                                    placeholder="0x742d..."
-                                    disabled
-                                />
-                                <p className="text-xs text-slate-500 mt-1">Connected via MetaMask</p>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={formData.walletAddress}
+                                        readOnly
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 focus:outline-none"
+                                        placeholder="Connect your wallet"
+                                    />
+                                    {!formData.walletAddress && (
+                                        <button
+                                            type="button"
+                                            onClick={connectWallet}
+                                            className="absolute right-2 top-2 bottom-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 rounded-lg font-bold text-sm hover:from-orange-600 hover:to-orange-700 transition-all flex items-center gap-2 shadow-md"
+                                        >
+                                            <Wallet className="w-4 h-4" />
+                                            Connect MetaMask
+                                        </button>
+                                    )}
+                                </div>
+                                {formData.walletAddress && (
+                                    <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                                        <CheckCircle className="w-3 h-3" />
+                                        Connected via MetaMask
+                                    </p>
+                                )}
                             </div>
 
                             {/* Document Upload */}
@@ -120,15 +191,58 @@ export default function DoctorRegistration() {
                                     Upload Verification Documents *
                                 </label>
                                 <div className="space-y-3">
-                                    <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-indigo-400 transition-colors cursor-pointer">
-                                        <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                                        <p className="text-sm font-medium text-slate-600 mb-1">Upload Medical License</p>
-                                        <p className="text-xs text-slate-500">PDF, JPG, or PNG (Max 5MB)</p>
+                                    {/* Medical License Upload */}
+                                    <div
+                                        onClick={() => licenseInputRef.current?.click()}
+                                        className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer ${licenseFile ? 'border-green-500 bg-green-50' : 'border-slate-300 hover:border-indigo-400'}`}
+                                    >
+                                        <input
+                                            type="file"
+                                            ref={licenseInputRef}
+                                            onChange={(e) => handleFileChange(e, 'license')}
+                                            className="hidden"
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                        />
+                                        {licenseFile ? (
+                                            <>
+                                                <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                                                <p className="text-sm font-bold text-green-700 mb-1">{licenseFile.name}</p>
+                                                <p className="text-xs text-green-600">File selected</p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                                                <p className="text-sm font-medium text-slate-600 mb-1">Upload Medical License</p>
+                                                <p className="text-xs text-slate-500">PDF, JPG, or PNG (Max 5MB)</p>
+                                            </>
+                                        )}
                                     </div>
-                                    <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-indigo-400 transition-colors cursor-pointer">
-                                        <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                                        <p className="text-sm font-medium text-slate-600 mb-1">Upload Government ID</p>
-                                        <p className="text-xs text-slate-500">PDF, JPG, or PNG (Max 5MB)</p>
+
+                                    {/* Government ID Upload */}
+                                    <div
+                                        onClick={() => idInputRef.current?.click()}
+                                        className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer ${idFile ? 'border-green-500 bg-green-50' : 'border-slate-300 hover:border-indigo-400'}`}
+                                    >
+                                        <input
+                                            type="file"
+                                            ref={idInputRef}
+                                            onChange={(e) => handleFileChange(e, 'id')}
+                                            className="hidden"
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                        />
+                                        {idFile ? (
+                                            <>
+                                                <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                                                <p className="text-sm font-bold text-green-700 mb-1">{idFile.name}</p>
+                                                <p className="text-xs text-green-600">File selected</p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                                                <p className="text-sm font-medium text-slate-600 mb-1">Upload Government ID</p>
+                                                <p className="text-xs text-slate-500">PDF, JPG, or PNG (Max 5MB)</p>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>

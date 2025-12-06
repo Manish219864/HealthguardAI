@@ -1,7 +1,16 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, Users, Shield, Clock, FileText, AlertCircle } from 'lucide-react'
+import { Calendar, Users, Shield, Clock, FileText, AlertCircle, User, MapPin, Stethoscope, Save } from 'lucide-react'
 
 export default function DoctorDashboard() {
+    const [isEditingProfile, setIsEditingProfile] = useState(false)
+    const [doctorProfile, setDoctorProfile] = useState({
+        name: 'Dr. Sarah Lee',
+        specialty: 'Cardiology',
+        hospital: 'City General Hospital',
+        availability: 'Mon-Fri, 9AM - 5PM',
+        bio: 'Experienced cardiologist with over 15 years of practice specializing in preventative care.'
+    })
     const appointments = [
         { id: 1, time: '10:00 AM', patient: 'Alex Johnson', status: 'new', hasRecords: true },
         { id: 2, time: '2:00 PM', patient: 'Maria Gonzalez', status: 'returning', hasRecords: false },
@@ -28,10 +37,89 @@ export default function DoctorDashboard() {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-4xl font-extrabold text-slate-900 mb-2">Dr. Lee's HealthGuard Pro</h1>
-                    <p className="text-slate-600">Manage your patients and access medical records securely</p>
+                <div className="mb-8 flex justify-between items-end">
+                    <div>
+                        <h1 className="text-4xl font-extrabold text-slate-900 mb-2">{doctorProfile.name}'s HealthGuard Pro</h1>
+                        <p className="text-slate-600">Manage your patients and access medical records securely</p>
+                    </div>
+                    <button
+                        onClick={() => setIsEditingProfile(!isEditingProfile)}
+                        className="bg-white text-slate-700 border border-slate-200 px-4 py-2 rounded-xl font-bold hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"
+                    >
+                        <User className="w-4 h-4" />
+                        {isEditingProfile ? 'Cancel Editing' : 'Edit Profile'}
+                    </button>
                 </div>
+
+                {isEditingProfile && (
+                    <div className="mb-8 bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl p-8 border border-white/20 animate-fade-in">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                <Stethoscope className="w-7 h-7 text-green-600" />
+                                Edit Public Profile
+                            </h2>
+                            <button
+                                onClick={() => setIsEditingProfile(false)}
+                                className="bg-green-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-green-700 transition-all flex items-center gap-2 shadow-lg hover:shadow-green-500/30"
+                            >
+                                <Save className="w-4 h-4" />
+                                Save Changes
+                            </button>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
+                                <input
+                                    type="text"
+                                    value={doctorProfile.name}
+                                    onChange={(e) => setDoctorProfile({ ...doctorProfile, name: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Specialty</label>
+                                <input
+                                    type="text"
+                                    value={doctorProfile.specialty}
+                                    onChange={(e) => setDoctorProfile({ ...doctorProfile, specialty: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Hospital / Clinic</label>
+                                <div className="relative">
+                                    <MapPin className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={doctorProfile.hospital}
+                                        onChange={(e) => setDoctorProfile({ ...doctorProfile, hospital: e.target.value })}
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Availability</label>
+                                <div className="relative">
+                                    <Clock className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={doctorProfile.availability}
+                                        onChange={(e) => setDoctorProfile({ ...doctorProfile, availability: e.target.value })}
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Bio</label>
+                                <textarea
+                                    value={doctorProfile.bio}
+                                    onChange={(e) => setDoctorProfile({ ...doctorProfile, bio: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all h-24 resize-none"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid lg:grid-cols-3 gap-6">
                     {/* Left Column - Appointments & Requests */}

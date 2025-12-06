@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
 import Home from './pages/Home'
 import Documentation from './pages/Documentation'
 import Login from './pages/Login'
@@ -14,28 +15,30 @@ import PatientRecordViewer from './pages/PatientRecordViewer'
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/documentation" element={<Documentation />} />
-        <Route path="/login" element={<Login />} />
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/documentation" element={<Documentation />} />
+          <Route path="/login" element={<Login />} />
 
-        {/* Patient Routes */}
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/patient-dashboard" element={<PatientDashboard />} />
-        <Route path="/symptom-checker" element={<SymptomChecker />} />
-        <Route path="/emergency-qr" element={<EmergencyQR />} />
-        <Route path="/bill-analysis" element={<BillAnalysis />} />
-        <Route path="/doctor-finder" element={<DoctorFinder />} />
-        <Route path="/upload-record" element={<PatientDashboard />} /> {/* Placeholder */}
+          {/* Patient Routes */}
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/patient-dashboard" element={<PatientDashboard />} />
+          <Route path="/symptom-checker" element={<SymptomChecker />} />
+          <Route path="/emergency-qr" element={<EmergencyQR />} />
+          <Route path="/bill-analysis" element={<BillAnalysis />} />
+          <Route path="/doctor-finder" element={<DoctorFinder />} />
+          <Route path="/upload-record" element={<PatientDashboard />} /> {/* Placeholder */}
 
-        {/* Doctor Routes */}
-        <Route path="/doctor-registration" element={<DoctorRegistration />} />
-        <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
-        <Route path="/patient-record/:patientId" element={<PatientRecordViewer />} />
-      </Routes>
-    </Router>
+          {/* Doctor Routes */}
+          <Route path="/doctor-registration" element={<DoctorRegistration />} />
+          <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
+          <Route path="/patient-record/:patientId" element={<PatientRecordViewer />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   )
 }
 
