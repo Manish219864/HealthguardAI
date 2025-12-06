@@ -6,3 +6,5 @@ web3
 boto3
 langchain
 python-jose
+requests
+python-dotenv

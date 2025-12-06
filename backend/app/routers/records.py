@@ -1,13 +1,16 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 import secrets
 from datetime import datetime
+from sqlalchemy.orm import Session
+from app import models
+from app.database import get_db
 
 router = APIRouter(prefix="/api/records", tags=["Medical Records"])
 
-class MedicalRecord(BaseModel):
-    id: str
+class MedicalRecordDTO(BaseModel):
+    id: str  # using record_id string from DB
     name: str
     type: str
     date: str
@@ -26,67 +29,87 @@ class AccessLog(BaseModel):
     record_id: Optional[str] = None
 
 @router.post("/upload")
-async def upload_record(file: UploadFile = File(...), patient_id: str = ""):
+async def upload_record(
+    file: UploadFile = File(...), 
+    patient_id: str = "test123", # Default for prototype
+    db: Session = Depends(get_db)
+):
     """
-    Upload medical record to IPFS
+    Upload medical record to IPFS (Simulated) and save to DB
     """
-    # Simulate IPFS upload
-    # In production: upload to IPFS, store hash in blockchain
-    
     ipfs_hash = "Qm" + secrets.token_hex(22)
+    record_id = f"record_{secrets.token_hex(8)}"
+    
+    user = db.query(models.User).filter(models.User.user_id == patient_id).first()
+    if not user:
+        try:
+           user = models.User(
+               user_id=patient_id, 
+               name="New User", 
+               email=f"{patient_id}@example.com",
+               hashed_password="pw"
+           )
+           db.add(user)
+           db.commit()
+           db.refresh(user)
+        except:
+             raise HTTPException(status_code=404, detail="User not found")
+    
+    new_record = models.Record(
+        record_id=record_id,
+        name=file.filename,
+        type=file.content_type or "Unknown",
+        date=datetime.now().strftime("%b %Y"),
+        ipfs_hash=ipfs_hash,
+        size=f"{(file.size or 0) / 1024:.1f} KB",
+        owner=user
+    )
+    
+    db.add(new_record)
+    
+    new_activity = models.Activity(
+        type="upload",
+        text=f"Uploaded record: {file.filename}",
+        owner=user
+    )
+    db.add(new_activity)
+    
+    db.commit()
     
     return {
         "success": True,
-        "record_id": f"record_{secrets.token_hex(8)}",
+        "record_id": record_id,
         "ipfs_hash": ipfs_hash,
         "filename": file.filename
     }
 
 @router.get("/list")
-async def list_records(patient_id: str):
+async def list_records(patient_id: str = "test123", db: Session = Depends(get_db)):
     """
     Get patient's medical records
     """
-    # Simulate fetching records
-    # In production: fetch from database
+    user = db.query(models.User).filter(models.User.user_id == patient_id).first()
+    if not user:
+        return {"records": []}
     
-    records = [
-        MedicalRecord(
-            id="record_1",
-            name="Lab Results",
-            type="PDF",
-            date="Oct 2024",
-            ipfs_hash="QmXxx...",
-            size="245 KB"
-        ),
-        MedicalRecord(
-            id="record_2",
-            name="Prescription History",
-            type="PDF",
-            date="Sep 2024",
-            ipfs_hash="QmYyy...",
-            size="180 KB"
-        ),
-        MedicalRecord(
-            id="record_3",
-            name="Insurance Card",
-            type="Image",
-            date="Jan 2024",
-            ipfs_hash="QmZzz...",
-            size="120 KB"
-        )
-    ]
+    records = db.query(models.Record).filter(models.Record.user_id == user.id).all()
     
-    return {"records": records}
+    return {"records": [
+        MedicalRecordDTO(
+            id=rec.record_id,
+            name=rec.name,
+            type=rec.type,
+            date=rec.date,
+            ipfs_hash=rec.ipfs_hash,
+            size=rec.size
+        ) for rec in records
+    ]}
 
 @router.post("/share")
 async def share_records(request: ShareRecordRequest):
     """
     Share records with doctor (blockchain transaction)
     """
-    # Simulate blockchain transaction
-    # In production: create smart contract transaction
-    
     transaction_hash = "0x" + secrets.token_hex(32)
     
     return {
@@ -97,21 +120,22 @@ async def share_records(request: ShareRecordRequest):
     }
 
 @router.get("/{record_id}")
-async def get_record(record_id: str):
+async def get_record(record_id: str, db: Session = Depends(get_db)):
     """
-    Retrieve specific record from IPFS
+    Retrieve specific record from IPFS (via DB metadata)
     """
-    # Simulate IPFS retrieval
-    # In production: fetch from IPFS using hash
-    
+    record = db.query(models.Record).filter(models.Record.record_id == record_id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+        
     return {
-        "record_id": record_id,
-        "ipfs_hash": "Qm" + secrets.token_hex(22),
-        "url": f"https://ipfs.io/ipfs/Qm{secrets.token_hex(22)}",
+        "record_id": record.record_id,
+        "ipfs_hash": record.ipfs_hash,
+        "url": f"https://ipfs.io/ipfs/{record.ipfs_hash}",
         "metadata": {
-            "name": "Medical Record",
-            "type": "PDF",
-            "size": "245 KB"
+            "name": record.name,
+            "type": record.type,
+            "size": record.size
         }
     }
 
@@ -120,8 +144,7 @@ async def get_access_log(patient_id: str):
     """
     View blockchain access history
     """
-    # Simulate blockchain query
-    # In production: query blockchain for access events
+
     
     logs = [
         AccessLog(
